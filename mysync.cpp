@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cctype>
 #include <windows.h>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -84,11 +85,16 @@ sync:
 
 	visited.clear();
 	deleted.clear();
-	cmd = "svn st | awk '$1 == \"M\" || $1 == \"?\" || $1 == \"A\" {print $NF}'";
+	cmd = "svn st | awk '$1 == \"M\" || $1 == \"?\" {print $NF}'";
 	istringstream files(exec(cmd.c_str()));
 	string file;
+	struct stat buf;
 	while (files >> file) {
 		file = trim(file);
+
+		stat(file.c_str(), &buf);
+		if (S_ISDIR(buf.st_mode)) continue; //忽略文件夹
+
 		visited.insert(file);
 		cmd = "md5sum " + file + " | awk '{print $1}'";
 		string md5sum = trim(exec(cmd.c_str())); 
