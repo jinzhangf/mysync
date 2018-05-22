@@ -43,7 +43,9 @@ string trim(const string &str)
 
 int scp_file(const string &src_path, const string &dst_path, const string &file)
 {
-
+	if (file.find(".git") != string::npos)
+		return 0;
+	
 	string cmd = "scp -P 36000 -r " + src_path + "/" + file +" dylanfang@10.12.142.125:" + dst_path + "/" + file + " > /dev/null 2>&1";
 	int ret = system(cmd.c_str());
 	if (ret != 0) {
@@ -66,7 +68,11 @@ int main(int argc, char* argv[])
 	
 	if (argc > 1)
 	{
-		return scp_file(src_path, dst_path, trim(argv[1]));
+		for (size_t i = 1; i < argc; ++i) {
+			if (0 != scp_file(src_path, dst_path, trim(argv[i])))
+				break;
+		}
+		return 0;
 	}
 
 	cout << "src_path=" << src_path << endl;
