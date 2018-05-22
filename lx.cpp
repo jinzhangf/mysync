@@ -38,8 +38,14 @@ string exec(const char* cmd)
 int main(int argc, char* argv[])
 {
 	if (argc < 2) {
-		cerr << "WRONG argc = [" << argc << "]" << endl;
-		return -1;
+		string line;
+		while (getline(cin, line)) {
+			for (size_t i = 0; i < line.size(); ++i) {
+				if (line[i] == '\\')
+					line[i] = '/';			
+			}
+			cout << line << endl;
+		}
 	}
 	
 	string cmd;
