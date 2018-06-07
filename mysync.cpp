@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 	}
 	
 	string src_path = trim(exec("pwd"));
-	string cmd = "echo " + src_path + " | sed 's/cygdrive\\/e/mnt\\/data/'";
+	string cmd = "echo " + src_path + " | sed 's/cygdrive\\/./mnt\\/data/'";
 	string dst_path = trim(exec(cmd.c_str()));
 	
 	if (argc > 1)
