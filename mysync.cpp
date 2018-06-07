@@ -51,6 +51,8 @@ int scp_file(const string &src_path, const string &dst_path, const string &file)
 	if (ret != 0) {
 		cout << "[Error]" << cmd << endl;
 	}
+	cout << "sync\t--->>>\t" << file << endl;
+	
 	return ret;
 }
 
@@ -116,7 +118,7 @@ sync:
 			return -1;
 
 		table[file] = md5sum;
-		cout << "sync\t--->>>\t" << file << endl;
+		//cout << "sync\t--->>>\t" << file << endl;
 	}
 	
 	for (auto t : table) {
@@ -124,7 +126,7 @@ sync:
 			if(scp_file(src_path, dst_path, t.first))
 			       return -2;
 			
-			cout << "sync\t--->>>\t" << t.first << endl;
+			//cout << "sync\t--->>>\t" << t.first << endl;
 			deleted.insert(t.first);
 		}
 	}
