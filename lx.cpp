@@ -43,6 +43,8 @@ int main(int argc, char* argv[])
 			for (size_t i = 0; i < line.size(); ++i) {
 				if (line[i] == '\\')
 					line[i] = '/';			
+				if (line[i] == '\r')
+					line[i] = '\n';
 			}
 			cout << line << endl;
 		}
