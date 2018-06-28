@@ -51,7 +51,8 @@ int scp_file(const string &src_path, const string &dst_path, const string &file)
 	if (ret != 0) {
 		cout << "[Error]" << cmd << endl;
 	}
-	cout << "sync\t--->>>\t" << file << endl;
+	string time = trim(exec("date +'%Y-%m-%d %T'"));
+	cout << "[" << time << "] " << "sync\t--->>>\t" << file << endl;
 	
 	return ret;
 }
