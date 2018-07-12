@@ -10,6 +10,21 @@
 
 using namespace std;
 
+string trim(const string &str)
+{
+	char *tmp = new char[str.size() + 1];
+	int i = 0;
+	for (int j = 0; j < str.size(); ++j) {
+		if (isprint(str[j])) {
+			tmp[i++] = (str[j] == '\\' ? '/': str[j]);
+		}
+	}
+	tmp[i] = '\0';
+	string ret(tmp);
+	delete []tmp;
+	return ret;
+}
+
 string exec(const char* cmd) 
 {
 	FILE* pipe = popen(cmd, "r");
@@ -53,7 +68,7 @@ int main(int argc, char* argv[])
 	string cmd;
 	for (size_t i = 1; i < argc; ++i)
 	{
-		cmd.append(argv[i]).append(" ");
+		cmd.append(trim(argv[i])).append(" ");
 	}
 	cout << exec(cmd.c_str()) << flush;
 	
