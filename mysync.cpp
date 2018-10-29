@@ -57,14 +57,8 @@ int scp_file(const string &src_path, const string &dst_path, const string &file)
 	return ret;
 }
 
-int main(int argc, char* argv[])
-{
-	int ret = system("svn info > /dev/null 2>&1");
-	if (ret != 0) {//svn path error
-		cerr << "current path is not a svn path" << endl;
-		return -1;
-	}
-	
+int svn_main(int argc, char* argv[])
+{	
 	string src_path = trim(exec("pwd"));
 	string cmd = "echo " + src_path + " | sed 's/cygdrive\\/./mnt\\/data/'";
 	string dst_path = trim(exec(cmd.c_str()));
@@ -140,5 +134,100 @@ sync:
 	goto sync;
 
 	return 0;
+}
+
+
+int git_main(int argc, char* argv[])
+{
+	string src_path = trim(exec("pwd"));
+	string cmd = "echo " + src_path + " | sed 's/cygdrive\\/./mnt\\/data/'";
+	string dst_path = trim(exec(cmd.c_str()));
+	
+	if (argc > 1)
+	{
+		for (size_t i = 1; i < argc; ++i) {
+			if (0 != scp_file(src_path, dst_path, trim(argv[i])))
+				break;
+		}
+		return 0;
+	}
+
+	cout << "src_path=" << src_path << endl;
+	cout << "dst_path=" << dst_path << endl << endl;
+	map<string, string> table;
+	set<string> visited;
+	set<string> deleted;
+
+	string last_st = exec("git status -s");
+	string curr_st;
+	cout << endl << "-------------------------------------git status -s----------------------------------" << endl; 
+	cout << last_st << "------------------------------------------------------------------------------------" << endl;
+
+sync2:
+	curr_st = exec("git status -s");
+	if (curr_st != last_st) {
+		cout << endl << endl << "-------------------------------------git status -s----------------------------------" << endl; 
+		cout << curr_st << "------------------------------------------------------------------------------------" << endl;
+		last_st = curr_st;
+	}
+
+	visited.clear();
+	deleted.clear();
+	cmd = "git status -s | awk '$1 == \"M\" || $1 == \"??\" {print $NF}'";
+	istringstream files(exec(cmd.c_str()));
+	string file;
+	struct stat buf;
+	while (files >> file) {
+		file = trim(file);
+
+		stat(file.c_str(), &buf);
+		if (S_ISDIR(buf.st_mode)) continue; //忽略文件夹
+
+		visited.insert(file);
+		cmd = "md5sum " + file + " | awk '{print $1}'";
+		string md5sum = trim(exec(cmd.c_str()));
+		if (table.count(file) != 0 && table[file] == md5sum)
+			continue;
+
+		if (scp_file(src_path, dst_path, file))
+			return -1;
+
+		table[file] = md5sum;
+		//cout << "sync\t--->>>\t" << file << endl;
+	}
+
+	for (auto t : table) {
+		if (visited.count(t.first) == 0) {
+			if(scp_file(src_path, dst_path, t.first))
+			       return -2;
+
+			//cout << "sync\t--->>>\t" << t.first << endl;
+			deleted.insert(t.first);
+		}
+	}
+	for (auto t : deleted) {
+		table.erase(t);
+	}
+
+	Sleep(200);
+	goto sync2;
+
+	return 0;
+}
+
+int main(int argc, char* argv[])
+{
+	int ret = system("svn info > /dev/null 2>&1");
+	if (ret == 0) { //svn proj
+		return svn_main(argc, argv);
+	}
+
+	ret = system("git status -s > /dev/null 2>&1");
+	if (ret == 0) { //git proj
+		return git_main(argc, argv);
+	}
+
+	cerr << "[Error] unknow path, not svn or git proj." << endl;
+	return -1;
 }
 
