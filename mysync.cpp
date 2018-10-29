@@ -158,13 +158,13 @@ int git_main(int argc, char* argv[])
 	set<string> visited;
 	set<string> deleted;
 
-	string last_st = exec("git status -s");
+	string last_st = exec("git status -s .");
 	string curr_st;
 	cout << endl << "-------------------------------------git status -s----------------------------------" << endl; 
 	cout << last_st << "------------------------------------------------------------------------------------" << endl;
 
 sync2:
-	curr_st = exec("git status -s");
+	curr_st = exec("git status -s .");
 	if (curr_st != last_st) {
 		cout << endl << endl << "-------------------------------------git status -s----------------------------------" << endl; 
 		cout << curr_st << "------------------------------------------------------------------------------------" << endl;
@@ -173,7 +173,7 @@ sync2:
 
 	visited.clear();
 	deleted.clear();
-	cmd = "git status -s | awk '$1 == \"M\" || $1 == \"??\" {print $NF}'";
+	cmd = "git status -s . | awk '$1 == \"M\" || $1 == \"??\" {print $NF}'";
 	istringstream files(exec(cmd.c_str()));
 	string file;
 	struct stat buf;
@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
 		return svn_main(argc, argv);
 	}
 
-	ret = system("git status -s > /dev/null 2>&1");
+	ret = system("git status -s . > /dev/null 2>&1");
 	if (ret == 0) { //git proj
 		return git_main(argc, argv);
 	}
