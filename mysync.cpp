@@ -173,7 +173,7 @@ sync2:
 
 	visited.clear();
 	deleted.clear();
-	cmd = "git status -s . | awk '$1 == \"MM\" || $1 == \"AM\" || $1 == \"M\" || $1 == \"A\" || $1 == \"??\" {print $NF}'";
+	cmd = "git status -s . | awk '$1 == \"MM\" || $1 == \"AM\" || $1 == \"M\" || $1 == \"A\" || $1 == \"??\" {print $2}'";
 	istringstream files(exec(cmd.c_str()));
 	string file;
 	struct stat buf;
