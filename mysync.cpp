@@ -43,7 +43,7 @@ string trim(const string &str)
 
 int scp_file(const string &src_path, const string &dst_path, const string &file)
 {
-	if (file.find(".git") != string::npos)
+	if (file == ".git")
 		return 0;
 	
 	string cmd = "scp -P 36000 -r " + src_path + "/" + file +" dylanfang@9.77.4.129:" + dst_path + "/" + file + " > /dev/null 2>&1";
