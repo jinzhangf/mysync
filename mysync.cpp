@@ -5,8 +5,13 @@
 #include <string>
 #include <cstdlib>
 #include <cctype>
-#include <windows.h>
 #include <sys/stat.h>
+
+#ifdef __APPLE__
+#include <unistd.h>
+#else
+#include <windows.h>
+#endif
 
 using namespace std;
 
@@ -45,8 +50,9 @@ int scp_file(const string &src_path, const string &dst_path, const string &file)
 {
 	if (file == ".git")
 		return 0;
-	
-	string cmd = "scp -P 36000 -r " + src_path + "/" + file +" dylanfang@9.77.4.129:" + dst_path + "/" + file + " > /dev/null 2>&1";
+	// tx : -P 36000
+	//string cmd = "scp -P 36000 -r " + src_path + "/" + file +" dylanfang@9.77.4.129:" + dst_path + "/" + file + " > /dev/null 2>&1";
+	string cmd = "scp -r " + src_path + "/" + file +" linfu@10.224.9.170:" + dst_path + "/" + file + " > /dev/null 2>&1";
 	int ret = system(cmd.c_str());
 	if (ret != 0) {
 		cout << "[Error]" << cmd << endl;
@@ -60,7 +66,11 @@ int scp_file(const string &src_path, const string &dst_path, const string &file)
 int svn_main(int argc, char* argv[])
 {	
 	string src_path = trim(exec("pwd"));
+	#ifdef __APPLE__
+	string cmd = "echo " + src_path + " | sed 's/Users/home/'";
+	#else
 	string cmd = "echo " + src_path + " | sed 's/cygdrive\\/./mnt\\/data/'";
+	#endif
 	string dst_path = trim(exec(cmd.c_str()));
 	
 	if (argc > 1)
@@ -129,8 +139,11 @@ sync:
 		table.erase(t);
 	}	
 
-	
+	#ifdef __APPLE__
+	usleep(200000);
+	#else
 	Sleep(200);
+	#endif
 	goto sync;
 
 	return 0;
@@ -140,7 +153,11 @@ sync:
 int git_main(int argc, char* argv[])
 {
 	string src_path = trim(exec("pwd"));
+	#ifdef __APPLE__
+	string cmd = "echo " + src_path + " | sed 's/Users/home/'";
+	#else
 	string cmd = "echo " + src_path + " | sed 's/cygdrive\\/./mnt\\/data/'";
+	#endif
 	string dst_path = trim(exec(cmd.c_str()));
 	
 	if (argc > 1)
@@ -209,7 +226,11 @@ sync2:
 		table.erase(t);
 	}
 
+	#ifdef __APPLE__
+	usleep(200000);
+	#else
 	Sleep(200);
+	#endif
 	goto sync2;
 
 	return 0;

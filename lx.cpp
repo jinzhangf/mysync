@@ -5,8 +5,13 @@
 #include <string>
 #include <cstdlib>
 #include <cctype>
-#include <windows.h>
 #include <sys/stat.h>
+
+#ifdef __APPLE__
+#include <unistd.h>
+#else
+#include <windows.h>
+#endif
 
 using namespace std;
 
