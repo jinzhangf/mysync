@@ -46,13 +46,28 @@ string trim(const string &str)
 	return ret;
 }
 
+string get_target()
+{
+	static string target = "";
+	if (!target.empty()) return target;
+
+	char *p = std::getenv("TARGET");
+	if (p == NULL || strlen(p) == 0) {
+		target = "linfu@10.224.9.170";
+	}
+	else {
+		target = string (p);
+	}
+	return target;
+}
+
 int scp_file(const string &src_path, const string &dst_path, const string &file)
 {
 	if (file == ".git")
 		return 0;
 	// tx : -P 36000
 	//string cmd = "scp -P 36000 -r " + src_path + "/" + file +" dylanfang@9.77.4.129:" + dst_path + "/" + file + " > /dev/null 2>&1";
-	string cmd = "scp -r " + src_path + "/" + file +" linfu@10.224.9.170:" + dst_path + "/" + file + " > /dev/null 2>&1";
+	string cmd = "scp -r " + src_path + "/" + file + " " + get_target() + ":" + dst_path + "/" + file + " > /dev/null 2>&1";
 	int ret = system(cmd.c_str());
 	if (ret != 0) {
 		cout << "[Error]" << cmd << endl;
@@ -82,6 +97,7 @@ int svn_main(int argc, char* argv[])
 		return 0;
 	}
 
+	cout << "target=" << get_target() << endl;
 	cout << "src_path=" << src_path << endl;
 	cout << "dst_path=" << dst_path << endl << endl;
 	map<string, string> table;
@@ -154,7 +170,7 @@ int git_main(int argc, char* argv[])
 {
 	string src_path = trim(exec("pwd"));
 	#ifdef __APPLE__
-	string cmd = "echo " + src_path + " | sed 's/Users/home/'";
+	string cmd = "echo " + src_path + " | sed 's/\\/Users\\/linfu/~/'";
 	#else
 	string cmd = "echo " + src_path + " | sed 's/cygdrive\\/./mnt\\/data/'";
 	#endif
@@ -169,6 +185,7 @@ int git_main(int argc, char* argv[])
 		return 0;
 	}
 
+	cout << "target=" << get_target() << endl;
 	cout << "src_path=" << src_path << endl;
 	cout << "dst_path=" << dst_path << endl << endl;
 	map<string, string> table;
