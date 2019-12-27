@@ -9,7 +9,13 @@
 
 #ifdef __APPLE__
 #include <unistd.h>
-#else
+#endif
+
+#ifdef __GNUC__
+#include <unistd.h>
+#endif
+
+#ifdef __WINDOWS_
 #include <windows.h>
 #endif
 

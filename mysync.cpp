@@ -1,15 +1,23 @@
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 #include <map>
 #include <set>
 #include <string>
 #include <cstdlib>
+#include <cstring>
 #include <cctype>
 #include <sys/stat.h>
 
 #ifdef __APPLE__
 #include <unistd.h>
-#else
+#endif
+
+#ifdef __GNUC__
+#include <unistd.h>
+#endif
+
+#ifdef __WINDOWS_
 #include <windows.h>
 #endif
 
@@ -53,7 +61,7 @@ string get_target()
 
 	char *p = std::getenv("TARGET");
 	if (p == NULL || strlen(p) == 0) {
-		target = "linfu@10.224.9.170";
+		target = "linfu@10.227.7.122";
 	}
 	else {
 		target = string (p);
@@ -78,15 +86,40 @@ int scp_file(const string &src_path, const string &dst_path, const string &file)
 	return ret;
 }
 
+string get_dst_path(const string &src_path)
+{
+	string home = trim(exec("echo $HOME"));
+	if (home.empty()) {
+		return "";
+	}
+
+	int cnt = std::count(home.begin(), home.end(), '/');
+	int len = cnt + home.size();
+	char *p = new char[len + 1];
+	int j = 0;
+	for (size_t i = 0; i < home.size(); ++i) {
+		if (home[i] == '/') {
+			p[j++] = '\\';
+			p[j++] = '/';
+		}else {
+			p[j++] = home[i];
+		}
+	}
+	p[j] = '\0';
+	if (j != len) {
+		cerr << "[Error] j != len" << endl;
+		exit(-1);
+	}
+
+	string cmd = "echo " + src_path + " | sed 's/" + string(p) + "/~/'";
+	delete []p;
+	return trim(exec(cmd.c_str()));
+}
+
 int svn_main(int argc, char* argv[])
 {	
 	string src_path = trim(exec("pwd"));
-	#ifdef __APPLE__
-	string cmd = "echo " + src_path + " | sed 's/Users/home/'";
-	#else
-	string cmd = "echo " + src_path + " | sed 's/cygdrive\\/./mnt\\/data/'";
-	#endif
-	string dst_path = trim(exec(cmd.c_str()));
+	string dst_path = get_dst_path(src_path);
 	
 	if (argc > 1)
 	{
@@ -119,7 +152,7 @@ sync:
 
 	visited.clear();
 	deleted.clear();
-	cmd = "svn st | awk '$1 == \"M\" || $1 == \"?\" {print $NF}'";
+	string cmd = "svn st | awk '$1 == \"M\" || $1 == \"?\" {print $NF}'";
 	istringstream files(exec(cmd.c_str()));
 	string file;
 	struct stat buf;
@@ -157,24 +190,25 @@ sync:
 
 	#ifdef __APPLE__
 	usleep(200000);
-	#else
+	#endif
+
+	#ifdef __GNUC__
+	usleep(200000);
+	#endif
+
+	#ifdef __WINDOWS_
 	Sleep(200);
 	#endif
+	
 	goto sync;
 
 	return 0;
 }
 
-
 int git_main(int argc, char* argv[])
 {
 	string src_path = trim(exec("pwd"));
-	#ifdef __APPLE__
-	string cmd = "echo " + src_path + " | sed 's/\\/Users\\/linfu/~/'";
-	#else
-	string cmd = "echo " + src_path + " | sed 's/cygdrive\\/./mnt\\/data/'";
-	#endif
-	string dst_path = trim(exec(cmd.c_str()));
+	string dst_path = get_dst_path(src_path);
 	
 	if (argc > 1)
 	{
@@ -185,7 +219,7 @@ int git_main(int argc, char* argv[])
 		return 0;
 	}
 
-	cout << "target=" << get_target() << endl;
+	cout << "TARGET=" << get_target() << endl;
 	cout << "src_path=" << src_path << endl;
 	cout << "dst_path=" << dst_path << endl << endl;
 	map<string, string> table;
@@ -207,7 +241,7 @@ sync2:
 
 	visited.clear();
 	deleted.clear();
-	cmd = "git status -s . | awk '$1 == \"MM\" || $1 == \"AM\" || $1 == \"M\" || $1 == \"A\" || $1 == \"??\" {print $2}'";
+	string cmd = "git status -s . | awk '$1 == \"MM\" || $1 == \"AM\" || $1 == \"M\" || $1 == \"A\" || $1 == \"??\" {print $2}'";
 	istringstream files(exec(cmd.c_str()));
 	string file;
 	struct stat buf;
@@ -245,9 +279,16 @@ sync2:
 
 	#ifdef __APPLE__
 	usleep(200000);
-	#else
+	#endif
+
+	#ifdef __GNUC__
+	usleep(200000);
+	#endif
+
+	#ifdef __WINDOWS_
 	Sleep(200);
 	#endif
+
 	goto sync2;
 
 	return 0;
