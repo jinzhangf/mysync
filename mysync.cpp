@@ -306,6 +306,17 @@ int main(int argc, char* argv[])
 		return git_main(argc, argv);
 	}
 
+	if (argc > 1)
+	{
+		string src_path = trim(exec("pwd"));
+		string dst_path = get_dst_path(src_path);
+		for (size_t i = 1; i < argc; ++i) {
+			if (0 != scp_file(src_path, dst_path, trim(argv[i])))
+				break;
+		}
+		return 0;
+	}
+
 	cerr << "[Error] unknow path, not svn or git proj." << endl;
 	return -1;
 }
